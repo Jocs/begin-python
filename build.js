@@ -1,9 +1,6 @@
 // 生成 doc
 const fs = require('fs')
-const DOC_DIR = 'doc'
-const cache = []
-
-const ignore = ['build.js', 'README.md']
+const DOC_DIR = 'docs'
 
 const promisefy = fn => (...args) => {
   return new Promise((resolve, reject) => {
@@ -31,15 +28,73 @@ const rm = path => {
 // 删除 doc 目录
 rm(`./${DOC_DIR}`)
 
-async function writeDoc() {
+async function getFileName(path) {
   await promisefy(fs.mkdir)(DOC_DIR)
-  let files = await promisefy(fs.readdir)(__dirname)
+  let dirs = await promisefy(fs.readdir)(path)
   // 过滤包含文档的文件夹
-  files = files.filter(f => /$cp/.test(f))
-  
+  dirs = dirs.filter(f => /^cp/.test(f))
 
+  const fileCol = await Promise.all(dirs.map(d => {
+    return promisefy(fs.readdir)(`${path}/${d}`)
+      .then(files => files.map(f => (`${path}/${d}/${f}`)))
+  }))
+  return fileCol.reduce((acc, arr) => {
+    return [...acc, ...arr]
+  }, [])
 }
-writeDoc()
+
+async function getCacheSource(files) {
+  const sources = await Promise.all(files.map(p => {
+    return promisefy(fs.readFile)(p, 'utf-8')
+      .then(s => ({source: s, pathname: `${__dirname}/${DOC_DIR}/${p.match(/\/([^\/]+)\./)[1]}.md`}))
+  }))
+  return sources.map(s => {
+    let cacheLine = []
+    let cacheCode = []
+    
+    s.source
+      .split('\n')
+      .filter(l => !/(coding\:utf8|\!\/usr\/bin\/env)/.test(l))
+      .filter(l => !!l)
+      .forEach((l, i, lines) => {
+        if (/^#/.test(l)) {
+          cacheLine.push(l.slice(2))
+        } else if (!lines[i - 1] || /^#/.test(lines[i - 1])) {
+          cacheCode.push('```python')
+          cacheCode.push(l)
+        } else if (!lines[i + 1] || /^#/.test(lines[i + 1])) {
+          if (cacheCode.length > 0) {
+            cacheCode.push(l)
+            cacheCode.push('```')
+          }
+          cacheLine = [...cacheLine, ...cacheCode]
+          cacheCode.length = 0
+        } else {
+          cacheCode.push(l)
+        }
+      })
+    return {
+      source: cacheLine.join('\n'),
+      pathname: s.pathname
+    }
+  })
+}
+
+function writeDocs(sources) {
+  return Promise.all(sources.map(s => {
+    promisefy(fs.writeFile)(s.pathname, s.source, 'utf-8')
+  }))
+}
+
+async function generateDoc() {
+  const files = await getFileName(__dirname)
+  const sources = await getCacheSource(files)
+  await writeDocs(sources)
+  return 'finished'
+}
+
+generateDoc()
+.then(console.log.bind(console))
 
 
 
