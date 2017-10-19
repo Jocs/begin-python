@@ -17,12 +17,14 @@ anotherNumber = number[:]
 print anotherNumber
 ```
 步长
-序列相加
-序列的乘法
 ```python
 print number[::2]
+```
+序列相加
 ```python
 number2 = [1, 2, 3] + [4, 5, 6]
+```
+序列的乘法
 ```python
 str1 = 'python ' * 4
 print str1

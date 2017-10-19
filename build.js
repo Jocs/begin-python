@@ -58,6 +58,11 @@ async function getCacheSource(files) {
       .filter(l => !!l)
       .forEach((l, i, lines) => {
         if (/^#/.test(l)) {
+          if (cacheCode.length) {
+            cacheCode.push('```')
+            cacheLine = [...cacheLine, ...cacheCode]
+            cacheCode.length = 0
+          }
           cacheLine.push(l.slice(2))
         } else if (!lines[i - 1] || /^#/.test(lines[i - 1])) {
           cacheCode.push('```python')
