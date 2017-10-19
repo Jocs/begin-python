@@ -48,7 +48,7 @@ print d
 ```
 上面的代码我们并没有使用`d = {}`，因为该方法对引用无效
 2. copy 方法，用于浅复制一个字典，而 copy 模块中的 deepcopy 是深度复制
-  下面会举一个深度复制的例子：
+下面会举一个深度复制的例子：
 ```python
 from copy import deepcopy
 x = {'job': 'sci', 'age': 345}
