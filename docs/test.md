@@ -1,0 +1,8 @@
+```python
+[import time]
+Dear [name]
+nice to meet you! i head you are learning [language]!
+I am glad to like it.
+[email]
+[time.asctime()]
+```
