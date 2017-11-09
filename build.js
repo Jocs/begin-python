@@ -36,7 +36,7 @@ async function getFileName(path) {
 
   const fileCol = await Promise.all(dirs.map(d => {
     return promisefy(fs.readdir)(`${path}/${d}`)
-      .then(files => files.map(f => (`${path}/${d}/${f}`)))
+      .then(files => files.filter(f => /\.py$/.test(f)).map(f => (`${path}/${d}/${f}`)))
   }))
   return fileCol.reduce((acc, arr) => {
     return [...acc, ...arr]
